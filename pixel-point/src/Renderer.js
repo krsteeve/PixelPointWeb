@@ -39,10 +39,10 @@ export function initBuffers(gl) {
 
   const textureCoordinates = [
     // Front
-    0.0,  0.0,
     1.0,  0.0,
-    1.0,  1.0,
+    0.0,  0.0,
     0.0,  1.0,
+    1.0,  1.0,
   ];
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates),
@@ -93,10 +93,11 @@ export function getTextureShaderProgram(gl) {
 
     uniform sampler2D uSampler;
     uniform vec4 uColor;
+    uniform vec4 uColor2;
 
     void main(void) {
-      //gl_FragColor = texture2D(uSampler, vTextureCoord);
-      gl_FragColor = uColor;
+      vec4 texColor = texture2D(uSampler, vTextureCoord);
+      gl_FragColor = uColor2 * texColor.r + uColor * (vec4(1) - texColor.r);
     }
   `;
 
@@ -117,6 +118,7 @@ export function getTextureShaderProgram(gl) {
       transformMatrix: gl.getUniformLocation(shaderProgram, 'uTransformMatrix'),
       uSampler: gl.getUniformLocation(shaderProgram, 'uSampler'),
       uColor: gl.getUniformLocation(shaderProgram, 'uColor'),
+      uColor2: gl.getUniformLocation(shaderProgram, 'uColor2'),
     },
   };
 }
@@ -187,7 +189,7 @@ export function drawStart(gl) {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
 
-export function drawScene(gl, programInfo, buffers, texture, location, size, color) {
+export function drawScene(gl, programInfo, buffers, texture, location, size, color, color2) {
   var mat4 = glMatrix.mat4;
 
   const transformMatrix = mat4.create();
@@ -257,6 +259,7 @@ export function drawScene(gl, programInfo, buffers, texture, location, size, col
   gl.uniform1i(programInfo.uniformLocations.uSampler, 0);
 
   gl.uniform4f(programInfo.uniformLocations.uColor, color.r / 255, color.g / 255, color.b / 255, color.a / 255);
+  gl.uniform4f(programInfo.uniformLocations.uColor2, color2.r / 255, color2.g / 255, color2.b / 255, color2.a / 255);
 
   {
     const offset = 0;

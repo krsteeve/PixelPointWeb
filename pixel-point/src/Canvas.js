@@ -3,6 +3,7 @@ import raf from 'raf';
 import * as renderer from './Renderer'
 import * as pixelization from './Pixelization'
 import junimo from './P9174365.JPG'
+import pixTexture from './P9174365-small.png'
 
  
 export default class Canvas extends Component {
@@ -34,7 +35,7 @@ export default class Canvas extends Component {
       };
       image.src = junimo;
 
-      this.texture = renderer.loadTexture(gl, junimo);
+      this.texture = renderer.loadTexture(gl, pixTexture);
     
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -46,7 +47,7 @@ export default class Canvas extends Component {
 
     if (this.state.pixels != null) {
       this.state.pixels.forEach((value, index) => {
-        renderer.drawScene(gl, this.programInfo, this.buffers, this.texture, {x:value.x, y:value.y}, {width:1/28, height:1/22}, value.color);
+        renderer.drawScene(gl, this.programInfo, this.buffers, this.texture, {x:value.x, y:value.y}, {width:1/28, height:1/22}, value.commonColor, value.extremeColor);
       }, this);
     }
 
@@ -55,7 +56,7 @@ export default class Canvas extends Component {
  
     render() {
         return (
-          <canvas id="glcanvas" width="640" height="480"></canvas>
+          <canvas id="glcanvas" width="1280" height="960"></canvas>
         );
     }
 }
