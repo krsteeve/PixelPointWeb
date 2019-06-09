@@ -97,7 +97,7 @@ export function getTextureShaderProgram(gl) {
 
     void main(void) {
       vec4 texColor = texture2D(uSampler, vTextureCoord);
-      gl_FragColor = uColor2 * texColor.r + uColor * (vec4(1) - texColor.r);
+      gl_FragColor = uColor2 * texColor + uColor * (vec4(1) - texColor);
     }
   `;
 
@@ -194,7 +194,7 @@ export function drawScene(gl, programInfo, buffers, texture, location, size, col
 
   const transformMatrix = mat4.create();
   mat4.translate(transformMatrix, transformMatrix, [-1.0 + size.width, 1.0 - size.height, 0.0]);
-  mat4.translate(transformMatrix, transformMatrix, [location.x * 2 * size.width, -location.y * 2 * size.height, 0])
+  mat4.translate(transformMatrix, transformMatrix, [location.x * 2, -location.y * 2, 0])
   mat4.scale(transformMatrix, transformMatrix, [size.width, size.height, 1.0]);
   
   // Tell WebGL how to pull out the positions from the position

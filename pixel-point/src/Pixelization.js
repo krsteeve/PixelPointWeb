@@ -14,9 +14,6 @@ export function pixelixeImage(image, targetWidth, targetHeight) {
     // Get raw image data
     var data = context.getImageData(0, 0, width, height).data;
 
-    // targetWidth *= 2;
-    // targetHeight *= 2;
-
     var numDivisions = 0;
     while (width / 2 >= targetWidth && height / 2 > targetHeight) {
         width /= 2;
@@ -121,5 +118,9 @@ export function pixelixeImage(image, targetWidth, targetHeight) {
     }
 
     console.log("done pixelizing");
-    return result;
+    return {
+        pixels: result,
+        widthPercentage: sizeToAverage * targetWidth / image.width,
+        heightPercentage: sizeToAverage * targetHeight / image.height,
+    };
 }
