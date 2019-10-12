@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import raf from 'raf';
 import * as renderer from './Renderer'
 import * as pixelization from './Pixelization'
-import junimo from './P9174365.JPG'
-import pixTexture from './P9174365-small.png'
+import junimo from './strawberries-1330459_1920.jpg'
+import pixTexture from './strawberries-1330459_1920.jpg'
 
  
 export default class Canvas extends Component {
@@ -33,20 +33,25 @@ export default class Canvas extends Component {
       this.programInfo = renderer.getTextureShaderProgram(gl);
       this.buffers = renderer.initBuffers(gl);
 
-      const image = new Image();
-      image.onload = () => {
-        var pixResult = pixelization.pixelixeImage(image, 28, 22);
-        this.setState({pixels: pixResult});
-        this.imageAspect = image.width / image.height;
-        console.log(pixResult.widthPercentage, pixResult.heightPercentage);
-      };
-      image.src = junimo;
+      this.setupPixels(0, 0);
 
       this.texture = renderer.loadTexture(gl, pixTexture);
       this.junimo = renderer.loadTexture(gl, junimo);
     
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  }
+
+  setupPixels(xOffset, yOffset) {
+    this.setState({pixels: null});
+    const image = new Image();
+    image.onload = () => {
+      var pixResult = pixelization.pixelixeImage(image, 28, 22, xOffset, yOffset);
+      this.setState({pixels: pixResult});
+      this.imageAspect = image.width / image.height;
+      console.log(pixResult.widthPercentage, pixResult.heightPercentage);
+    };
+    image.src = junimo;
   }
 
   renderGlScene(gl, programs) {
@@ -84,12 +89,17 @@ export default class Canvas extends Component {
 
       newXOffset = Math.min(0, newXOffset / 1280 + this.state.mouseDownOffset.x);
       newYOffset = Math.min(0, newYOffset / 960 + this.state.mouseDownOffset.y);
+
+      newXOffset = Math.max(-1 / this.state.pixels.widthPercentage + 1, newXOffset);
+      newYOffset = Math.max(-1/ this.state.pixels.heightPercentage + 1, newYOffset);
+      console.log (newXOffset, newYOffset);
       this.setState({imageOffset:{x: newXOffset, y:newYOffset}})
     }
   }
 
   onMouseUp = (e) => {
     this.setState({mouseIsDown:false});
+    this.setupPixels(this.state.imageOffset.x, this.state.imageOffset.y);
   }
  
     render() {
