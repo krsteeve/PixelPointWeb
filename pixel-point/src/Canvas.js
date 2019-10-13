@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
+import ReactDOM from "react-dom";
 import raf from 'raf';
 import * as renderer from './Renderer'
 import * as pixelization from './Pixelization'
 import junimo from './strawberries-1330459_1920.jpg'
 import pixTexture from './strawberries-1330459_1920.jpg'
-
+import ReactCrop from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
  
 export default class Canvas extends Component {
 
@@ -16,30 +18,36 @@ export default class Canvas extends Component {
       imageOffset: {x: 0, y: 0},
       mouseDownPosition: {x: 0, y: 0},
       mouseDownOffset: {x: 0, y: 0},
+      crop: {
+        unit: "%",
+        width: 30,
+        aspect: 28/22
+      },
+      src: null
     }
   }
  
   componentDidMount() {
-    const canvas = document.querySelector('#glcanvas');
-    const gl = canvas.getContext('webgl');
+    // const canvas = document.querySelector('#glcanvas');
+    // const gl = canvas.getContext('webgl');
 
-      // If we don't have a GL context, give up now
-      if (!gl) {
-        alert('Unable to initialize WebGL. Your browser or machine may not support it.');
-        return;
-      }
+    //   // If we don't have a GL context, give up now
+    //   if (!gl) {
+    //     alert('Unable to initialize WebGL. Your browser or machine may not support it.');
+    //     return;
+    //   }
 
-      this.rafHandle = raf(this.renderGlScene.bind(this, gl));
-      this.programInfo = renderer.getTextureShaderProgram(gl);
-      this.buffers = renderer.initBuffers(gl);
+    //   this.rafHandle = raf(this.renderGlScene.bind(this, gl));
+    //   this.programInfo = renderer.getTextureShaderProgram(gl);
+    //   this.buffers = renderer.initBuffers(gl);
 
-      this.setupPixels(0, 0);
+    //   this.setupPixels(0, 0);
 
-      this.texture = renderer.loadTexture(gl, pixTexture);
-      this.junimo = renderer.loadTexture(gl, junimo);
+    //   this.texture = renderer.loadTexture(gl, pixTexture);
+    //   this.junimo = renderer.loadTexture(gl, junimo);
     
-      gl.enable(gl.BLEND);
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    //   gl.enable(gl.BLEND);
+    //   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   }
 
   setupPixels(xOffset, yOffset) {
@@ -78,40 +86,44 @@ export default class Canvas extends Component {
     this.rafHandle = raf(this.renderGlScene.bind(this, gl, programs));
   }
 
-  onMouseDown = (e) => {
-    this.setState({mouseIsDown:true, mouseDownPosition: {x: e.nativeEvent.offsetX, y:e.nativeEvent.offsetY}, mouseDownOffset: this.state.imageOffset});
-  }
+  onCropChange = (crop, percentCrop) => {
+    // You could also use percentCrop:
+    // this.setState({ crop: percentCrop });
+    this.setState({ crop });
+  };
 
-  onMouseMove = (e) => {
-    if (this.state.mouseIsDown) {
-      var newXOffset = e.nativeEvent.offsetX - this.state.mouseDownPosition.x;
-      var newYOffset = e.nativeEvent.offsetY - this.state.mouseDownPosition.y;
-
-      newXOffset = Math.min(0, newXOffset / 1280 + this.state.mouseDownOffset.x);
-      newYOffset = Math.min(0, newYOffset / 960 + this.state.mouseDownOffset.y);
-
-      newXOffset = Math.max(-1 / this.state.pixels.widthPercentage + 1, newXOffset);
-      newYOffset = Math.max(-1/ this.state.pixels.heightPercentage + 1, newYOffset);
-      console.log (newXOffset, newYOffset);
-      this.setState({imageOffset:{x: newXOffset, y:newYOffset}})
+  onSelectFile = e => {
+    if (e.target.files && e.target.files.length > 0) {
+      const reader = new FileReader();
+      reader.addEventListener("load", () =>
+        this.setState({ src: reader.result })
+      );
+      reader.readAsDataURL(e.target.files[0]);
     }
-  }
-
-  onMouseUp = (e) => {
-    this.setState({mouseIsDown:false});
-    this.setupPixels(this.state.imageOffset.x, this.state.imageOffset.y);
-  }
+  };
  
-    render() {
-        return (
-          <canvas id="glcanvas" 
-            width="1280" 
-            height="960" 
-            style={{cursor:'move'}}
-            onMouseDown={this.onMouseDown}
-            onMouseMove={this.onMouseMove}
-            onMouseUp={this.onMouseUp}
-          />
-        );
-    }
+  render() {
+    const canvas = (
+      <canvas id="glcanvas" 
+        width="1280" 
+        height="960" 
+        style={{}}
+      />
+    );
+
+    const { crop, src } = this.state;
+      return (
+        <div>
+          <div>
+        <input type="file" onChange={this.onSelectFile} />
+      </div>
+        {src && (<ReactCrop
+          src={src}
+          crop = {crop}
+          onChange={this.onCropChange}
+          style={{width:'50%'}}
+        />)}
+        </div>
+      );
+  }
 }
