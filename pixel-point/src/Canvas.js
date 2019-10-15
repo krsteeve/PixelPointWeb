@@ -15,6 +15,17 @@ export default class Canvas extends Component {
       height:960
     }
   }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    if (prevProps.src != this.props.src) {
+      this.setupPixels(this.props.src);
+    }
+
+    if (prevProps.crop != this.props.crop) {
+      var pixResult = pixelization.pixelixeImage(this.image, 28, 22, this.cropX(), this.cropY(), this.cropWidth(this.image), this.cropHeight(this.image));
+      this.setState({pixels: pixResult});
+    }
+  }
  
   componentDidMount() {
     const canvas = document.querySelector('#glcanvas');
@@ -30,7 +41,7 @@ export default class Canvas extends Component {
       this.programInfo = renderer.getTextureShaderProgram(gl);
       this.buffers = renderer.initBuffers(gl);
 
-      // this.setupPixels(this.props.src);
+      this.setupPixels(this.props.src);
     
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -38,40 +49,58 @@ export default class Canvas extends Component {
 
   setupPixels(src) {
     this.setState({pixels: null});
-    const image = new Image();
-    image.onload = () => {
-      var pixResult = pixelization.pixelixeImage(image, 28, 22, 0, 0);
-      //this.setState({pixels: pixResult});
-      this.imageAspect = image.width / image.height;
-      console.log(pixResult.widthPercentage, pixResult.heightPercentage);
+    this.image = new Image();
+    this.image.onload = () => {
+      var pixResult = pixelization.pixelixeImage(this.image, 28, 22, this.cropX(), this.cropY(), this.cropWidth(this.image), this.cropHeight(this.image));
+      this.setState({pixels: pixResult});
 
       const canvas = this.refs.canvas;
 			let context = canvas.getContext('webgl');
 			// store width, height and ratio in context for paint functions
-			context.width = image.width;
-      context.height = image.height;
-      this.setState({width:image.width, height:image.height})
+			context.width = this.image.width;
+      context.height = this.image.height;
+      this.setState({width:this.image.width, height:this.image.height})
       context.viewport(0, 0, canvas.width, canvas.height);
 
       
       this.texture = renderer.loadTexture(context, this.props.src);
     };
-    image.src = src;
+    this.image.src = src;
   }
 
-  memoizeSrc = memoize(
-    (src) => this.setupPixels(src)
-  );
+  cropWidth(image) {
+    return this.props.crop.width ? this.props.crop.width : image.width;
+  }
+
+  cropHeight(image) {
+    return this.props.crop.height ? this.props.crop.height : image.height;
+  }
+
+  cropX() {
+    return this.props.crop.x ? this.props.crop.x : 0;
+  }
+
+  cropY() {
+    return this.props.crop.y ? this.props.crop.y : 0;
+  }
 
   renderGlScene(gl, programs) {
     renderer.drawStart(gl);
 
+    renderer.drawScene(gl, this.programInfo, this.buffers, this.texture, {x:0, y:0}, {width:1, height:1}, {r: 0, g:0, b:0, a:255}, {r: 255, g:255, b:255, a:255});
+
     if (this.state.pixels != null) {
+      const offsetX = this.props.crop.x / this.state.width
+      const offsetY = this.props.crop.y / this.state.height;
+
+      const pixWidth = (this.props.crop.width / this.state.width) / 28;
+      const pixHeight = (this.props.crop.height / this.state.height) / 22;
+
       this.state.pixels.pixels.forEach((value, index) => {
-        renderer.drawScene(gl, this.programInfo, this.buffers, this.texture, {x:value.x * 1/28, y:value.y * 1/22}, {width:1/28, height:1/22}, value.color, value.color);
+        renderer.drawScene(gl, this.programInfo, this.buffers, this.texture, {x:value.x * pixWidth + offsetX, y:value.y * pixHeight + offsetY}, {width:pixWidth, height:pixHeight}, value.color, value.color);
       }, this);
     } else {
-      renderer.drawScene(gl, this.programInfo, this.buffers, this.texture, {x:0, y:0}, {width:1, height:1}, {r: 0, g:0, b:0, a:255}, {r: 255, g:255, b:255, a:255});
+      
     }
 
     this.rafHandle = raf(this.renderGlScene.bind(this, gl, programs));
@@ -79,8 +108,6 @@ export default class Canvas extends Component {
 
   render() {
 
-      this.memoizeSrc(this.props.src);
-      
       return (
         <canvas id="glcanvas" 
         ref ='canvas'

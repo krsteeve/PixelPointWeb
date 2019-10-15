@@ -14,8 +14,9 @@ class  App extends React.Component {
     this.state = {
       crop: {
         unit: "px",
-        aspect: 28/22
+        aspect: 28/22,
       },
+      completeCrop: {},
       src: null
     }
   }
@@ -25,6 +26,10 @@ class  App extends React.Component {
     // this.setState({ crop: percentCrop });
     this.setState({ crop });
   };
+
+  onCompleteCrop = (crop, percentCrop) => {
+    this.setState({completeCrop: crop});
+  }
 
   onSelectFile = e => {
     if (e.target.files && e.target.files.length > 0) {
@@ -39,7 +44,7 @@ class  App extends React.Component {
   render() {
     const { crop, src } = this.state;
 
-    const canvas = (<Canvas src={src} crop={crop}/>);
+    const canvas = (<Canvas src={src} crop={this.state.completeCrop}/>);
 
     return (
       <div className="App">
@@ -51,6 +56,7 @@ class  App extends React.Component {
             src={src}
             crop = {crop}
             onChange={this.onCropChange}
+            onComplete={this.onCompleteCrop}
             style={{}}
             renderComponent={canvas}
           />)}

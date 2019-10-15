@@ -1,30 +1,31 @@
 var convert = require('color-convert');
 
 export function pixelixeImage(image, targetWidth, targetHeight, xOffset, yOffset, sourceWidth, sourceHeight) {
-    var width = image.width;
-    var height = image.height;
-
     var canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
+    canvas.width = image.width;
+    canvas.height = image.height;
 
     var context = canvas.getContext('2d');
     context.drawImage(image, 0, 0);
 
     // Get raw image data
-    var data = context.getImageData(0, 0, width, height).data;
+    var data = context.getImageData(xOffset, yOffset, sourceWidth, sourceHeight).data;
 
     var numDivisions = 0;
-    while (width / 2 >= targetWidth && height / 2 > targetHeight) {
-        width /= 2;
-        height /= 2;
-        numDivisions++;
+    {
+        var width = sourceWidth;
+        var height = sourceHeight;
+        while (width / 2 >= targetWidth && height / 2 > targetHeight) {
+            width /= 2;
+            height /= 2;
+            numDivisions++;
+        }
     }
 
     const sizeToAverage = 1 << numDivisions;
     const avgBase = sizeToAverage * sizeToAverage;
     const channels = 4; // rgba
-    const stride = channels * image.width;
+    const stride = channels * sourceWidth;
 
     var result = [];
 
