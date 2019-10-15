@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import raf from 'raf';
 import * as renderer from './Renderer'
 import * as pixelization from './Pixelization'
+import memoize from "memoize-one";
  
 export default class Canvas extends Component {
 
@@ -10,10 +11,6 @@ export default class Canvas extends Component {
     super(props);
     this.state = {
       pixels: null,
-      mouseIsDown: false,
-      imageOffset: {x: 0, y: 0},
-      mouseDownPosition: {x: 0, y: 0},
-      mouseDownOffset: {x: 0, y: 0},
       width:1280,
       height:960
     }
@@ -33,19 +30,17 @@ export default class Canvas extends Component {
       this.programInfo = renderer.getTextureShaderProgram(gl);
       this.buffers = renderer.initBuffers(gl);
 
-      this.setupPixels(0, 0);
-
-      this.texture = renderer.loadTexture(gl, this.props.src);
+      // this.setupPixels(this.props.src);
     
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   }
 
-  setupPixels(xOffset, yOffset) {
+  setupPixels(src) {
     this.setState({pixels: null});
     const image = new Image();
     image.onload = () => {
-      var pixResult = pixelization.pixelixeImage(image, 28, 22, xOffset, yOffset);
+      var pixResult = pixelization.pixelixeImage(image, 28, 22, 0, 0);
       //this.setState({pixels: pixResult});
       this.imageAspect = image.width / image.height;
       console.log(pixResult.widthPercentage, pixResult.heightPercentage);
@@ -57,9 +52,16 @@ export default class Canvas extends Component {
       context.height = image.height;
       this.setState({width:image.width, height:image.height})
       context.viewport(0, 0, canvas.width, canvas.height);
+
+      
+      this.texture = renderer.loadTexture(context, this.props.src);
     };
-    image.src = this.props.src;
+    image.src = src;
   }
+
+  memoizeSrc = memoize(
+    (src) => this.setupPixels(src)
+  );
 
   renderGlScene(gl, programs) {
     renderer.drawStart(gl);
@@ -69,15 +71,16 @@ export default class Canvas extends Component {
         renderer.drawScene(gl, this.programInfo, this.buffers, this.texture, {x:value.x * 1/28, y:value.y * 1/22}, {width:1/28, height:1/22}, value.color, value.color);
       }, this);
     } else {
-      renderer.drawScene(gl, this.programInfo, this.buffers, this.texture, this.state.imageOffset, {width:1, height:1}, {r: 0, g:0, b:0, a:255}, {r: 255, g:255, b:255, a:255});
+      renderer.drawScene(gl, this.programInfo, this.buffers, this.texture, {x:0, y:0}, {width:1, height:1}, {r: 0, g:0, b:0, a:255}, {r: 255, g:255, b:255, a:255});
     }
 
     this.rafHandle = raf(this.renderGlScene.bind(this, gl, programs));
   }
 
-  
- 
   render() {
+
+      this.memoizeSrc(this.props.src);
+      
       return (
         <canvas id="glcanvas" 
         ref ='canvas'

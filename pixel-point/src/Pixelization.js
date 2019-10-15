@@ -1,6 +1,6 @@
 var convert = require('color-convert');
 
-export function pixelixeImage(image, targetWidth, targetHeight, xOffset, yOffset) {
+export function pixelixeImage(image, targetWidth, targetHeight, xOffset, yOffset, sourceWidth, sourceHeight) {
     var width = image.width;
     var height = image.height;
 

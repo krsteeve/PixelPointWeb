@@ -13,8 +13,7 @@ class  App extends React.Component {
     super(props);
     this.state = {
       crop: {
-        unit: "%",
-        width: 200,
+        unit: "px",
         aspect: 28/22
       },
       src: null
@@ -40,7 +39,7 @@ class  App extends React.Component {
   render() {
     const { crop, src } = this.state;
 
-    const canvas = (<Canvas src={src}/>);
+    const canvas = (<Canvas src={src} crop={crop}/>);
 
     return (
       <div className="App">
