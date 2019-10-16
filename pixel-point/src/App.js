@@ -47,7 +47,7 @@ class  App extends React.Component {
     const canvas = (<Canvas src={src} crop={this.state.completeCrop}/>);
 
     return (
-      <div className="App">
+      <div className="App" style={{}}>
         <header className="App-header">
           <div>
             <input type="file" onChange={this.onSelectFile} />

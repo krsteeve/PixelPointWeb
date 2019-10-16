@@ -52,7 +52,7 @@ export default class Canvas extends Component {
     this.setState({pixels: null});
     this.image = new Image();
     this.image.onload = () => {
-      var pixResult = pixelization.pixelixeImage(this.image, 28, 22, this.cropX(), this.cropY(), this.cropWidth(this.image), this.cropHeight(this.image));
+      var pixResult = pixelization.pixelixeImage(this.image, 28, 22, this.cropX(), this.cropY(), this.cropWidth(), this.cropHeight());
       this.setState({pixels: pixResult});
 
       const canvas = this.refs.canvas;
@@ -69,20 +69,25 @@ export default class Canvas extends Component {
     this.image.src = src;
   }
 
-  cropWidth(image) {
-    return this.props.crop.width ? Math.floor(this.props.crop.width) : image.width;
+  cropFactor() {
+    const canvas = this.refs.canvas;
+    return canvas.width / canvas.clientWidth;
   }
 
-  cropHeight(image) {
-    return this.props.crop.height ? Math.floor(this.props.crop.height) : image.height;
+  cropWidth() {
+    return this.props.crop.width ? Math.floor(this.props.crop.width * this.cropFactor()) : this.image.width;
+  }
+
+  cropHeight() {
+    return this.props.crop.height ? Math.floor(this.props.crop.height * this.cropFactor()) : this.image.height;
   }
 
   cropX() {
-    return this.props.crop.x ? Math.floor(this.props.crop.x) : 0;
+    return this.props.crop.x ? Math.floor(this.props.crop.x * this.cropFactor()) : 0;
   }
 
   cropY() {
-    return this.props.crop.y ? Math.floor(this.props.crop.y) : 0;
+    return this.props.crop.y ? Math.floor(this.props.crop.y * this.cropFactor()) : 0;
   }
 
   renderGlScene(gl, programs) {
@@ -90,12 +95,15 @@ export default class Canvas extends Component {
 
     renderer.drawScene(gl, this.programInfo, this.buffers, this.texture, {x:0, y:0}, {width:1, height:1}, {r: 0, g:0, b:0, a:255}, {r: 255, g:255, b:255, a:255});
 
-    if (this.state.pixels != null) {
-      const offsetX = this.props.crop.x / this.state.width
-      const offsetY = this.props.crop.y / this.state.height;
+    if (this.state.pixels != null && this.props.crop.height) {
+      const canvas = this.refs.canvas;
+      const factor = gl.drawingBufferWidth / canvas.clientWidth;
 
-      const pixWidth = (this.props.crop.width / this.state.width) / 28;
-      const pixHeight = (this.props.crop.height / this.state.height) / 22;
+      const offsetX = this.cropX() / gl.drawingBufferWidth;
+      const offsetY = this.cropY() / gl.drawingBufferHeight;
+
+      const pixWidth = (this.cropWidth() / gl.drawingBufferWidth) / 28;
+      const pixHeight = (this.cropHeight() / gl.drawingBufferHeight) / 22;
 
       this.state.pixels.pixels.forEach((value, index) => {
         renderer.drawScene(gl, this.programInfo, this.buffers, this.texture, {x:value.x * pixWidth + offsetX, y:value.y * pixHeight + offsetY}, {width:pixWidth, height:pixHeight}, value.color, value.color);
@@ -116,6 +124,7 @@ export default class Canvas extends Component {
         height={this.state.height} 
         style={{
           maxWidth: '100%',
+          maxHeight:'90vh',
           display: 'block'
 				}}
       />
