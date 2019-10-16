@@ -22,6 +22,7 @@ export default class Canvas extends Component {
     }
 
     if (prevProps.crop != this.props.crop) {
+      console.log("Crop updated!");
       var pixResult = pixelization.pixelixeImage(this.image, 28, 22, this.cropX(), this.cropY(), this.cropWidth(this.image), this.cropHeight(this.image));
       this.setState({pixels: pixResult});
     }
@@ -69,19 +70,19 @@ export default class Canvas extends Component {
   }
 
   cropWidth(image) {
-    return this.props.crop.width ? this.props.crop.width : image.width;
+    return this.props.crop.width ? Math.floor(this.props.crop.width) : image.width;
   }
 
   cropHeight(image) {
-    return this.props.crop.height ? this.props.crop.height : image.height;
+    return this.props.crop.height ? Math.floor(this.props.crop.height) : image.height;
   }
 
   cropX() {
-    return this.props.crop.x ? this.props.crop.x : 0;
+    return this.props.crop.x ? Math.floor(this.props.crop.x) : 0;
   }
 
   cropY() {
-    return this.props.crop.y ? this.props.crop.y : 0;
+    return this.props.crop.y ? Math.floor(this.props.crop.y) : 0;
   }
 
   renderGlScene(gl, programs) {

@@ -22,7 +22,11 @@ export function pixelixeImage(image, targetWidth, targetHeight, xOffset, yOffset
         }
     }
 
-    const sizeToAverage = 1 << numDivisions;
+    var sizeToAverage = Math.floor(sourceWidth / targetWidth);
+    if (sizeToAverage %2 == 1)
+    {
+        sizeToAverage -= 1;
+    }
     const avgBase = sizeToAverage * sizeToAverage;
     const channels = 4; // rgba
     const stride = channels * sourceWidth;
