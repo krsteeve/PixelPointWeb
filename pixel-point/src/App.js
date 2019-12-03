@@ -7,14 +7,14 @@ import Canvas from './Canvas';
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 
-class  App extends React.Component {
+class App extends React.Component {
 
   constructor(props) {
     super(props);
     this.state = {
       crop: {
         unit: "px",
-        aspect: 28/22,
+        aspect: 28 / 22,
       },
       completeCrop: {},
       src: null
@@ -28,7 +28,7 @@ class  App extends React.Component {
   };
 
   onCompleteCrop = (crop, percentCrop) => {
-    this.setState({completeCrop: crop});
+    this.setState({ completeCrop: crop });
   }
 
   onSelectFile = e => {
@@ -44,7 +44,7 @@ class  App extends React.Component {
   render() {
     const { crop, src } = this.state;
 
-    const canvas = (<Canvas src={src} crop={this.state.completeCrop}/>);
+    const canvas = (<Canvas src={src} crop={this.state.completeCrop} />);
 
     return (
       <div className="App" style={{}}>
@@ -54,12 +54,18 @@ class  App extends React.Component {
           </div>
           {src && (<ReactCrop
             src={src}
-            crop = {crop}
+            crop={crop}
             onChange={this.onCropChange}
             onComplete={this.onCompleteCrop}
             style={{}}
             renderComponent={canvas}
           />)}
+          Portrait: <input type="checkbox" onChange={(event) => {
+            var checked = event.target.checked;
+            this.setState(state => (
+              { crop: { aspect: checked ? 22 / 28 : 28 / 22 }, completeCrop: { aspect: checked ? 22 / 28 : 28 / 22 } })
+            );
+          }} />
         </header>
       </div>
     );
